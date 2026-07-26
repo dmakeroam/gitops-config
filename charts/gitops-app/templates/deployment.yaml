@@ -1,0 +1,87 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "gitops-app.fullname" . }}-go-simple-app
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "gitops-app.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.goSimpleApp.replicas }}
+  strategy:
+    type: {{ .Values.goSimpleApp.strategy.type | quote }}
+    rollingUpdate:
+      maxSurge: {{ .Values.goSimpleApp.strategy.rollingUpdate.maxSurge }}
+      maxUnavailable: {{ .Values.goSimpleApp.strategy.rollingUpdate.maxUnavailable }}
+  selector:
+    matchLabels:
+      {{- include "gitops-app.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "gitops-app.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
+    spec:
+      automountServiceAccountToken: false
+      serviceAccountName: {{ include "gitops-app.serviceAccountName" . }}
+      securityContext: {{- toYaml .Values.goSimpleApp.podSecurityContext | nindent 8 }}
+      terminationGracePeriodSeconds: 45
+      nodeSelector: {{- toYaml .Values.goSimpleApp.nodeSelector | nindent 8 }}
+      tolerations: {{- toYaml .Values.goSimpleApp.tolerations | nindent 8 }}
+      topologySpreadConstraints:
+        {{- range .Values.goSimpleApp.topologySpreadConstraints }}
+        - maxSkew: {{ .maxSkew }}
+          topologyKey: {{ .topologyKey | quote }}
+          whenUnsatisfiable: {{ .whenUnsatisfiable }}
+          labelSelector:
+            matchLabels:
+              {{- include "gitops-app.selectorLabels" $ | nindent 14 }}
+        {{- end }}
+      containers:
+      - name: go-simple-app
+        {{- if .Values.goSimpleApp.goSimpleApp.image.digest }}
+        image: "{{ .Values.goSimpleApp.goSimpleApp.image.repository }}@{{ .Values.goSimpleApp.goSimpleApp.image.digest }}"
+        {{- else }}
+        image: "{{ .Values.goSimpleApp.goSimpleApp.image.repository }}:{{ .Values.goSimpleApp.goSimpleApp.image.tag }}"
+        {{- end }}
+        imagePullPolicy: {{ .Values.goSimpleApp.goSimpleApp.image.pullPolicy }}
+        env:
+        - name: PORT
+          value: {{ quote .Values.goSimpleApp.goSimpleApp.env.port }}
+        - name: KUBERNETES_CLUSTER_DOMAIN
+          value: {{ quote .Values.kubernetesClusterDomain }}
+        ports:
+        - containerPort: 8080
+          name: http
+          protocol: TCP
+        lifecycle:
+          preStop:
+            exec:
+              command:
+              - sleep
+              - "5"
+        startupProbe:
+          failureThreshold: 24
+          httpGet:
+            path: /healthz
+            port: http
+          periodSeconds: 5
+          successThreshold: 1
+          timeoutSeconds: 3
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /healthz
+            port: http
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 5
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /readyz
+            port: http
+          periodSeconds: 5
+          successThreshold: 1
+          timeoutSeconds: 3
+        resources: {{- toYaml .Values.goSimpleApp.goSimpleApp.resources | nindent 10 }}
+        securityContext: {{- toYaml .Values.goSimpleApp.goSimpleApp.containerSecurityContext | nindent 10 }}

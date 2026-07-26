@@ -1,0 +1,16 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "gitops-app.fullname" . }}-go-simple-app
+  namespace: {{ .Release.Namespace }}
+  labels:
+  {{- include "gitops-app.labels" . | nindent 4 }}
+spec:
+  {{- if hasKey .Values.goSimpleApp "maxUnavailable" }}
+  maxUnavailable: {{ .Values.goSimpleApp.maxUnavailable }}
+  {{- else }}
+  minAvailable: {{ .Values.goSimpleApp.minAvailable }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "gitops-app.selectorLabels" . | nindent 6 }}

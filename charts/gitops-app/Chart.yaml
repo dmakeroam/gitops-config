@@ -1,0 +1,8 @@
+apiVersion: v2
+name: gitops-app
+description: Deploys the go-simple-app HTTP service on Kubernetes (EKS).
+type: application
+version: 0.2.0
+appVersion: "0.1.0"
+maintainers:
+  - name: platform-team
