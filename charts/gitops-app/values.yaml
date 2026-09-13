@@ -13,7 +13,7 @@ goSimpleApp:
     env:
       port: "8080"
     image:
-      repository: 058264397013.dkr.ecr.us-east-1.amazonaws.com/gitops-app
+      repository: 720691796403.dkr.ecr.us-east-1.amazonaws.com/gitops-app
       digest: "sha256:a779fc0596a2fb7611550db05a53f32e89aae50028a960dda5ed3e5f97e51f1c"
       pullPolicy: IfNotPresent
     resources:
