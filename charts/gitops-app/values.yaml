@@ -14,7 +14,7 @@ goSimpleApp:
       port: "8080"
     image:
       repository: 058264397013.dkr.ecr.us-east-1.amazonaws.com/gitops-app
-      digest: "sha256:1bd9a513ac6c16d6ad194ff4db11ef96d2fd443b95b322a020a1fccb295990ac"
+      digest: "sha256:a779fc0596a2fb7611550db05a53f32e89aae50028a960dda5ed3e5f97e51f1c"
       pullPolicy: IfNotPresent
     resources:
       limits:
